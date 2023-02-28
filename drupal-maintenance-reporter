@@ -20,8 +20,14 @@ if (file_exists($autoloadFile = __DIR__ . '/vendor/autoload.php')
 
 use Symfony\Component\Console\Application;
 use DrupalMaintenanceReporting\ComposerDiffPeriodCommand;
+use DrupalMaintenanceReporting\SecuritiesFixedCommand;
+use DrupalMaintenanceReporting\DrupalMaintenanceReporter;
 
 
 $app = new Application();
 $app->add(new ComposerDiffPeriodCommand());
+$app->add(new SecuritiesFixedCommand());
+$app->add(new DrupalMaintenanceReporter());
+
+$app->setDefaultCommand('report');
 $app->run();
