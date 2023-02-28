@@ -2,17 +2,13 @@
 
 namespace DrupalMaintenanceReporting;
 
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Process\Process;
-use Symfony\Component\Process\Exception\ProcessFailedException;
 
 /**
  * Report composer diff for a specific period.
  */
-class ComposerDiffPeriodCommand extends Command {
+class ComposerDiffPeriodCommand extends BaseCommand {
 
   protected static $defaultName = 'composer-lock-diff-period';
 
@@ -20,27 +16,8 @@ class ComposerDiffPeriodCommand extends Command {
    * {@inheritdoc}
    */
   protected function configure() {
-
+    parent::configure();
     $this->setDescription('Shows composer diff report for a repository in a specific period.');
-
-    $this->addArgument(
-      'branch'
-    );
-
-    $this->addOption(
-      'from',
-      'f',
-      InputOption::VALUE_REQUIRED,
-      'Y-m-d date to check the composer.lock from'
-    );
-
-    $this->addOption(
-      'to',
-      't',
-      InputOption::VALUE_REQUIRED,
-      'Y-m-d date to check the composer.lock to'
-    );
-
   }
 
   /**
@@ -51,56 +28,21 @@ class ComposerDiffPeriodCommand extends Command {
     $from = $input->getOption('from');
     $to = $input->getOption('to');
 
-    $this->runCommand(sprintf('git fetch origin %s', $branch));
-
     $composer_lock_from_filename = 'composer-lock-from.json';
 
     $first_commit = $this->runCommand("git log origin/$branch --after=$from --pretty=format:'%h' | tail -n1")->getOutput();
-    $this->savesComposerLockAtCommit(trim($first_commit), $composer_lock_from_filename);
+    $this->saveFileAtCommit(trim($first_commit), 'composer.lock', $composer_lock_from_filename);
 
+    // @todo: place files into a specific temporary folder!
     $composer_lock_to_filename = 'composer-lock-to.json';
     $last_commit = $this->runCommand("git log origin/$branch --until=$to --pretty=format:'%h' | head -n1")->getOutput();
-    $this->savesComposerLockAtCommit(trim($last_commit), $composer_lock_to_filename);
+    $this->saveFileAtCommit(trim($last_commit), 'composer.lock', $composer_lock_to_filename);
 
     $output->writeln($this->runCommand(sprintf('composer-lock-diff --from %s --to %s', $composer_lock_from_filename, $composer_lock_to_filename)));
 
     $this->runCommand(sprintf('rm %s %s', $composer_lock_from_filename, $composer_lock_to_filename));
 
     return 1;
-  }
-
-  /**
-   * Saves a commit.
-   *
-   * @param string $commit_id
-   *   Commit id.
-   * @param string $filepath
-   *   Filepath.
-   */
-  protected function savesComposerLockAtCommit(string $commit_id, string $filepath) {
-    $first_commit_data = $this->runCommand(sprintf('git show %s:composer.lock', $commit_id))->getOutput();
-    file_put_contents($filepath, $first_commit_data);
-  }
-
-  /**
-   * Runs a shell command.
-   *
-   * @param string $command
-   *   Command.
-   *
-   * @return Process
-   *   It can be used to obtain the command output if needed.
-   *
-   * @throws ProcessFailedException
-   *   When the command fails.
-   */
-  protected function runCommand(string $command) {
-    $process = Process::fromShellCommandline($command);
-    $process->run();
-    if (!$process->isSuccessful()) {
-      throw new ProcessFailedException($process);
-    }
-    return $process;
   }
 
 }
