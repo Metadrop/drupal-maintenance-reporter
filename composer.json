@@ -1,0 +1,26 @@
+{
+    "name": "metadrop/drupal-maintenance-reporting",
+    "description": "Tools to make maintenance reports in drupal projects",
+    "type": "library",
+    "bin": [
+        "drupal-maintenance-reporter"
+    ],
+    "require": {
+        "symfony/console": "^4 || ^5 || ^6",
+        "symfony/process": "^4 || ^5 || ^6",
+        "drush/drush": "^10 || ^11",
+        "davidrjonas/composer-lock-diff": "^1.7"
+    },
+    "authors": [
+        {
+            "name": "Omar",
+            "email": "omar.lopesino@metadrop.net"
+        }
+    ],
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "DrupalMaintenanceReporting\\": "src/"
+        }
+    }
+}
