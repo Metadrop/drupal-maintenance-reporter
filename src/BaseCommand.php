@@ -2,7 +2,9 @@
 
 namespace DrupalMaintenanceReporting;
 
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Console\Command\Command;
@@ -42,6 +44,11 @@ abstract class BaseCommand extends Command {
       'Y-m-d date to check the composer.lock to'
     );
 
+  }
+
+  protected function showSummary(InputInterface $input, OutputInterface $output) {
+    $output->writeln(sprintf('Commit to start from: %s', $this->getFirstCommit($input->getOption('from'), $input->getArgument('branch'))));
+    $output->writeln(sprintf('Commit to start to: %s', $this->getLastCommit($input->getOption('to'), $input->getArgument('branch'))));
   }
 
   /**
