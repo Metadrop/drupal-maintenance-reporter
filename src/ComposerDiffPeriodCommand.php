@@ -20,6 +20,11 @@ class ComposerDiffPeriodCommand extends BaseCommand {
     $this->setDescription('Shows composer diff report for a repository in a specific period.');
   }
 
+  protected function initialize(InputInterface $input, OutputInterface $output)
+  {
+    $this->showSummary($input, $output);
+  }
+
   /**
    * {@inheritdoc}
    */
@@ -38,6 +43,7 @@ class ComposerDiffPeriodCommand extends BaseCommand {
     $last_commit = $this->runCommand("git log origin/$branch --until=$to --pretty=format:'%h' | head -n1")->getOutput();
     $this->saveFileAtCommit(trim($last_commit), 'composer.lock', $composer_lock_to_filename);
 
+    $output->writeln("\n");
     $output->writeln($this->runCommand(sprintf('composer-lock-diff --from %s --to %s', $composer_lock_from_filename, $composer_lock_to_filename)));
 
     $this->runCommand(sprintf('rm %s %s', $composer_lock_from_filename, $composer_lock_to_filename));
