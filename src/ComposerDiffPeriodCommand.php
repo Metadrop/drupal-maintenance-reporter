@@ -23,6 +23,7 @@ class ComposerDiffPeriodCommand extends BaseCommand {
   protected function initialize(InputInterface $input, OutputInterface $output)
   {
     $this->showSummary($input, $output);
+    $this->generateDirSkeleton();
   }
 
   /**
@@ -33,20 +34,20 @@ class ComposerDiffPeriodCommand extends BaseCommand {
     $from = $input->getOption('from');
     $to = $input->getOption('to');
 
-    $composer_lock_from_filename = 'composer-lock-from.json';
+    $composer_lock_from_filepath = $this->dirBasePath . '/composer-lock-from.json';
 
     $first_commit = $this->runCommand("git log origin/$branch --after=$from --pretty=format:'%h' | tail -n1")->getOutput();
-    $this->saveFileAtCommit(trim($first_commit), 'composer.lock', $composer_lock_from_filename);
+    $this->saveFileAtCommit(trim($first_commit), 'composer.lock', $composer_lock_from_filepath);
 
     // @todo: place files into a specific temporary folder!
-    $composer_lock_to_filename = 'composer-lock-to.json';
+    $composer_lock_to_filename = $this->dirBasePath . '/composer-lock-to.json';
     $last_commit = $this->runCommand("git log origin/$branch --until=$to --pretty=format:'%h' | head -n1")->getOutput();
     $this->saveFileAtCommit(trim($last_commit), 'composer.lock', $composer_lock_to_filename);
 
     $output->writeln("\n");
-    $output->writeln($this->runCommand(sprintf('composer-lock-diff --from %s --to %s', $composer_lock_from_filename, $composer_lock_to_filename)));
+    $output->writeln($this->runCommand(sprintf('composer-lock-diff --from %s --to %s', $composer_lock_from_filepath, $composer_lock_to_filename)));
 
-    $this->runCommand(sprintf('rm %s %s', $composer_lock_from_filename, $composer_lock_to_filename));
+    $this->cleanup();
 
     return 1;
   }

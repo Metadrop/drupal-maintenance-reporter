@@ -15,22 +15,10 @@ class SecuritiesFixedCommand extends BaseCommand {
 
   protected static $defaultName = 'securities-fixed';
 
-  protected string $dirBasePath;
-
   protected function initialize(InputInterface $input, OutputInterface $output)
   {
     $this->showSummary($input, $output);
     $this->generateDirSkeleton();
-  }
-
-  /**
-   * Generates a directory where the composer files will be placed.
-   */
-  protected function generateDirSkeleton() {
-    $this->dirBasePath = sys_get_temp_dir() . '/drupal-maintenance-report-' . hash('sha256', random_bytes(20));
-    mkdir($this->getDirMainLocation());
-    mkdir($this->getComposerJsonFromLocation());
-    mkdir($this->getComposerJsonToLocation());
   }
 
   /**
@@ -151,9 +139,6 @@ class SecuritiesFixedCommand extends BaseCommand {
     $conflict = $security_advisories_composer_json['conflict'];
     foreach ($packages as $package) {
       $name = $package['name'];
-      if ($name == 'drupal/core') {
-        $debug = 1;
-      }
       if (!empty($conflict[$name]) && Semver::satisfies($package['version'], $security_advisories_composer_json['conflict'][$name])) {
         $updates[$name] = [
           'name' => $name,
@@ -164,8 +149,13 @@ class SecuritiesFixedCommand extends BaseCommand {
     return $updates;
   }
 
-  protected function getDirMainLocation() {
-    return $this->dirBasePath;
+  /**
+   * Generates a directory where the composer files will be placed.
+   */
+  protected function generateDirSkeleton() {
+    parent::generateDirSkeleton();
+    mkdir($this->getComposerJsonFromLocation());
+    mkdir($this->getComposerJsonToLocation());
   }
 
   protected function getComposerJsonFromLocation() {
@@ -218,10 +208,6 @@ class SecuritiesFixedCommand extends BaseCommand {
       ];
     }
     return $security_advisories_list_formatted;
-  }
-
-  protected function cleanup() {
-    $this->runCommand(sprintf('rm -r %s', $this->getDirMainLocation()));
   }
 
 }

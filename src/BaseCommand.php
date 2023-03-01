@@ -19,6 +19,20 @@ abstract class BaseCommand extends Command {
 
   protected array $composerLockDataCache = [];
 
+  protected string $dirBasePath;
+
+  /**
+   * Generates a directory where the composer files will be placed.
+   */
+  protected function generateDirSkeleton() {
+    $this->dirBasePath = sys_get_temp_dir() . '/drupal-maintenance-report-' . hash('sha256', random_bytes(20));
+    mkdir($this->getDirMainLocation());
+  }
+
+  protected function getDirMainLocation() {
+    return $this->dirBasePath;
+  }
+
   /**
    * {@inheritdoc}
    */
@@ -113,6 +127,10 @@ abstract class BaseCommand extends Command {
       $this->composerLockDataCache[$folder] = json_decode(file_get_contents($folder . '/composer.lock'), TRUE);
     }
     return $this->composerLockDataCache[$folder];
+  }
+
+  protected function cleanup() {
+    $this->runCommand(sprintf('rm -r %s', $this->getDirMainLocation()));
   }
 
 }
