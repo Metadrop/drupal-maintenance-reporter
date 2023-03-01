@@ -16,7 +16,7 @@ These packages must be installed globally:
 
 ## Usage
 
-This command will generate a report of the develop branch of February 2023:
+This example command generates a report of the develop branch of February 2023:
 
 ```
 cd my-project
@@ -26,7 +26,7 @@ cd my-project
 
 ### Arguments
 
-- **branch**: Branch to run composer-lock-diff
+- **branch**: Git branch to analyze.
 - **from**: Y-m-d date to start from.
 - **to**: Y-m-d date to start to.
 
