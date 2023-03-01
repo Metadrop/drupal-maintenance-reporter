@@ -2,6 +2,7 @@
 
 namespace DrupalMaintenanceReporting;
 
+use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -20,8 +21,10 @@ class ComposerDiffPeriodCommand extends BaseCommand {
     $this->setDescription('Shows composer diff report for a repository in a specific period.');
   }
 
-  protected function initialize(InputInterface $input, OutputInterface $output)
-  {
+  /**
+   * {@inheritdoc}
+   */
+  protected function initialize(InputInterface $input, OutputInterface $output) {
     $this->showSummary($input, $output);
     $this->generateDirSkeleton();
   }
@@ -45,11 +48,37 @@ class ComposerDiffPeriodCommand extends BaseCommand {
     $this->saveFileAtCommit(trim($last_commit), 'composer.lock', $composer_lock_to_filename);
 
     $output->writeln("\n");
-    $output->writeln($this->runCommand(sprintf('composer-lock-diff --from %s --to %s', $composer_lock_from_filepath, $composer_lock_to_filename)));
+    $composer_lock_diff = json_decode($this->runCommand(sprintf('composer-lock-diff --from %s --to %s --json', $composer_lock_from_filepath, $composer_lock_to_filename))->getOutput(), true);
+
+    $this->printComposerChanges($composer_lock_diff['changes'], 'Production changes', $output);
+    $this->printComposerChanges($composer_lock_diff['changes-dev'], 'Development changes', $output);
 
     $this->cleanup();
 
     return 1;
+  }
+
+  /**
+   * Print the composer changes shown by composer lock diff.
+   *
+   * @param array $changes
+   *   Changes from changes-dev property or changes.
+   * @param string $label
+   *   Label that will appear in the output.
+   * @param OutputInterface $output
+   *   Output to print the changes.
+   */
+  protected function printComposerChanges(array $changes, string $label, OutputInterface $output) {
+    $output->writeln("$label:\n");
+    $production_changes_table = new Table($output);
+    $production_changes_table->setHeaders(['Package', 'From', 'To']);
+
+    foreach ($changes as $package => $package_changes) {
+      [$from, $to] = $package_changes;
+      $production_changes_table->addRow([$package, $from, $to]);
+    }
+
+    $production_changes_table->render();
   }
 
 }
