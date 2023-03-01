@@ -8,9 +8,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 class DrupalMaintenanceReporter extends BaseCommand {
   protected static $defaultName = 'report';
 
-  protected function initialize(InputInterface $input, OutputInterface $output)
-  {
-    parent::initialize($input, $output);
+  protected function configure() {
+    parent::configure();
     $this->setDescription('Reports maintenance actions done in a specific period.');
   }
 
