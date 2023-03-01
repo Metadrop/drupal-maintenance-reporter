@@ -1,5 +1,5 @@
 {
-    "name": "metadrop/drupal-maintenance-reporting",
+    "name": "metadrop/drupal-maintenance-reporter",
     "description": "Tools to make maintenance reports in drupal projects",
     "type": "library",
     "bin": [
