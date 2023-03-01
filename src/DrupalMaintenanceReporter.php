@@ -31,7 +31,7 @@ class DrupalMaintenanceReporter extends BaseCommand {
     $output->writeln('Securities fixed:');
     $this->getApplication()->find('securities-fixed')
       ->run($input, $output);
-    return 1;
+    return 0;
   }
 
 

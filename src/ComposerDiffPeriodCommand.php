@@ -55,7 +55,7 @@ class ComposerDiffPeriodCommand extends BaseCommand {
 
     $this->cleanup();
 
-    return 1;
+    return 0;
   }
 
   /**

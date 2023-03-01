@@ -53,7 +53,7 @@ class SecuritiesFixedCommand extends BaseCommand {
     $fixed_drupal_advisories_table->render();
 
     $this->cleanup();
-    return 1;
+    return 0;
   }
 
   /**
