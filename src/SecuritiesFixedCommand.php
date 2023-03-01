@@ -231,9 +231,9 @@ class SecuritiesFixedCommand extends BaseCommand {
    */
   protected function getFolderSecurityAdvisoriesByDate(string $folder, string $date) {
     $date = new \DateTime($date);
-    $security_advisories = json_decode($this->runCommandWithKnownException(sprintf('composer audit --locked --working-dir=%s --format=json', $folder))->getOutput());
-    if (!empty($security_advisories) && isset($security_advisories->advisories)) {
-      $security_advisories_list_by_package = (array) $security_advisories->advisories;
+    $security_advisories = json_decode($this->runCommandWithKnownException(sprintf('composer audit --locked --working-dir=%s --format=json', $folder))->getOutput(), TRUE);
+    if (!empty($security_advisories) && isset($security_advisories['advisories'])) {
+      $security_advisories_list_by_package = $security_advisories['advisories'];
       $security_advisories_list = call_user_func_array('array_merge', array_values($security_advisories_list_by_package));
       $security_advisories_list = array_filter($security_advisories_list, function ($advisory) use ($date) {
         if (isset($advisory->reportedAt->date)) {
