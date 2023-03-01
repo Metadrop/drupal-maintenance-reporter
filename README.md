@@ -33,25 +33,24 @@ cd my-project
 ### Examples
 
 - Generate a full report (packages updated + fixed securities):
+  ```
+  cd my-project
 
-```
-cd my-project
-
-./vendor/bin/drupal-maintenance-reporter report develop --from=2023-02-01 --to=2023-02-28
-```
+  ./vendor/bin/drupal-maintenance-reporter report develop --from=2023-02-01 --to=2023-02-28
+  ```
 
 - Show packages updated given a specific period:
 
-```
-cd my-project
+  ```
+  cd my-project
 
-./vendor/bin/drupal-maintenance-reporter composer-lock-diff-period develop --from=2023-02-01 --to=2023-02-28
-```
+  ./vendor/bin/drupal-maintenance-reporter composer-lock-diff-period develop --from=2023-02-01 --to=2023-02-28
+  ```
 
 - Fixed securities in a specific period:
 
-```
-cd my-project
+  ```
+  cd my-project
 
-./vendor/bin/drupal-maintenance-reporter securities-fixed develop --from=2023-02-01 --to=2023-02-28
-```
+  ./vendor/bin/drupal-maintenance-reporter securities-fixed develop --from=2023-02-01 --to=2023-02-28
+  ```
