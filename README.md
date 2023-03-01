@@ -1,4 +1,4 @@
-# Maintenance reporting
+# Drupal maintenance reporter
 
 This project contains tools to do maintenance reports.
 
