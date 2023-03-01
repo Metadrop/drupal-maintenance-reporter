@@ -129,7 +129,7 @@ class SecuritiesFixedCommand extends BaseCommand {
   {
     // We use the v2 branch for now, as per https://github.com/drupal-composer/drupal-security-advisories/pull/11.
     $client = new Client();
-    $response = $client->get('https://raw.githubusercontent.com/drupal-composer/drupal-security-advisories/8.x-v2/composer.json');
+    $response = $client->get('https://raw.githubusercontent.com/drupal-composer/drupal-security-advisories/9.x/composer.json');
     $security_advisories_composer_json = json_decode($response->getBody(), true);
     return $security_advisories_composer_json;
   }
