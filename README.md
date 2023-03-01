@@ -7,6 +7,13 @@ It allows:
 - Showing the updated packages in a specific period.
 - Show the fixed securities in a specific period.
 
+## Requirements
+
+These packages must be installed globally:
+
+- Git
+- Composer 2.4 or higher
+
 ## Usage
 
 This command will generate a report of the develop branch of February 2023:
