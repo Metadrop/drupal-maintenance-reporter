@@ -9,14 +9,16 @@ use Composer\Semver\Semver;
 use GuzzleHttp\Client;
 
 /**
- * Report composer diff for a specific period.
+ * Report security advisories fixed in a specific date.
  */
 class SecuritiesFixedCommand extends BaseCommand {
 
   protected static $defaultName = 'securities-fixed';
 
-  protected function initialize(InputInterface $input, OutputInterface $output)
-  {
+  /**
+   * {@inheritdoc}
+   */
+  protected function initialize(InputInterface $input, OutputInterface $output) {
     $this->showSummary($input, $output);
     $this->generateDirSkeleton();
   }
@@ -37,11 +39,11 @@ class SecuritiesFixedCommand extends BaseCommand {
     $from = $input->getOption('from');
     $to = $input->getOption('to');
 
-    $this->placeFirstCommitJson($from, $branch);
-    $this->placeLatestCommitJson($to, $branch);
+    $this->saveComposerCommitStatus($this->getFirstCommit($from, $branch), $this->getComposerJsonFromLocation());
+    $this->saveComposerCommitStatus($this->getLastCommit($to, $branch), $this->getComposerJsonToLocation());
 
     $output->writeln("\n");
-    $fixed_advisories_table = $this->getComposerFixedSEcurityAdvisories($to, $output);
+    $fixed_advisories_table = $this->getComposerFixedSecurityAdvisories($to, $output);
     $output->writeln('Fixed security advisories (Composer):');
     $fixed_advisories_table->render();
 
@@ -54,8 +56,18 @@ class SecuritiesFixedCommand extends BaseCommand {
     return 1;
   }
 
-
-  protected function getComposerFixedSEcurityAdvisories(string $to, OutputInterface $output) {
+  /**
+   * Get the fixed advisories from composer.
+   *
+   * @param string $to
+   *   Date limit to check fixed securities. If there is a security reported later, if won't be checked.
+   * @param OutputInterface $output
+   *   Used to build the table with fixed advisories.
+   *
+   * @return Table
+   *   Output table prepared to render.
+   */
+  protected function getComposerFixedSecurityAdvisories(string $to, OutputInterface $output) {
     $from_advisories = $this->getFolderSecurityAdvisoriesByDate($this->getComposerJsonFromLocation(), $to);
     $to_advisories = $this->getFolderSecurityAdvisoriesByDate($this->getComposerJsonToLocation(), $to);
 
@@ -69,6 +81,20 @@ class SecuritiesFixedCommand extends BaseCommand {
     return $table;
   }
 
+  /**
+   * Get the fixed drupal securities.
+   *
+   * The process is done in the following steps:
+   *   1. Detect the drupal securities from the starting date.
+   *   2. Detect the drupal securities from the end date.
+   *   3. From the first list, get the securities that are not present in the second list, that means they are fixed.
+   *
+   * @param OutputInterface $output
+   *   Output to create the table with results.
+   *
+   * @return Table
+   *   Table ready to render the securities.
+   */
   protected function getFixedDrupalSecurities(OutputInterface $output) {
     $from_advisories = $this->getFolderDrupalAdvisories($this->getComposerJsonFromLocation());
     $to_advisories = $this->getFolderDrupalAdvisories($this->getComposerJsonToLocation());
@@ -100,6 +126,17 @@ class SecuritiesFixedCommand extends BaseCommand {
     return $table;
   }
 
+  /**
+   * Get security advisories from a specific folder.
+   *
+   * @param string $folder
+   *   Folder.
+   *
+   * @return array
+   *   List of security updates.
+   *
+   * @throws \Exception
+   */
   protected function getFolderDrupalAdvisories(string $folder) {
     $composer_lock_data = $this->getComposerLockData($folder);
     $security_advisories = $this->fetchAdvisoryComposerJson();
@@ -113,13 +150,10 @@ class SecuritiesFixedCommand extends BaseCommand {
    *
    * @throws \Exception
    */
-  protected function fetchAdvisoryComposerJson()
-  {
-    // We use the v2 branch for now, as per https://github.com/drupal-composer/drupal-security-advisories/pull/11.
+  protected function fetchAdvisoryComposerJson() {
     $client = new Client();
     $response = $client->get('https://raw.githubusercontent.com/drupal-composer/drupal-security-advisories/9.x/composer.json');
-    $security_advisories_composer_json = json_decode($response->getBody(), true);
-    return $security_advisories_composer_json;
+    return json_decode($response->getBody(), true);
   }
 
   /**
@@ -131,6 +165,7 @@ class SecuritiesFixedCommand extends BaseCommand {
    *   The composer.json array from drupal-security-advisories.
    *
    * @return array
+   *   Security updates list.
    */
   protected function calculateSecurityUpdates($composer_lock_data, $security_advisories_composer_json)
   {
@@ -158,20 +193,24 @@ class SecuritiesFixedCommand extends BaseCommand {
     mkdir($this->getComposerJsonToLocation());
   }
 
+  /**
+   * Get the location of the composer json start date files.
+   *
+   * @return string
+   *   Absolute path.
+   */
   protected function getComposerJsonFromLocation() {
     return $this->dirBasePath . '/from';
   }
 
+  /**
+   * Get the location of the composer json end date files.
+   *
+   * @return string
+   *   Absolute path.
+   */
   protected function getComposerJsonToLocation() {
     return $this->dirBasePath . '/to';
-  }
-
-  protected function placeFirstCommitJson(string $date, string $branch) {
-    $this->saveComposerCommitStatus($this->getFirstCommit($date, $branch), $this->getComposerJsonFromLocation());
-  }
-
-  protected function placeLatestCommitJson(string $date, string $branch) {
-    $this->saveComposerCommitStatus($this->getLastCommit($date, $branch), $this->getComposerJsonToLocation());
   }
 
   protected function saveComposerCommitStatus(string $commit_id, string $folder) {
@@ -179,7 +218,17 @@ class SecuritiesFixedCommand extends BaseCommand {
     $this->saveFileAtCommit($commit_id, 'composer.json', $folder . '/composer.json');
   }
 
-
+  /**
+   * Get the security advisories of composer audit from a specific date.
+   *
+   * @param string $folder
+   *   Folder where it is wanted to get the security update.
+   * @param string $date
+   *   This date is used to get CVE reports created before this date.
+   *
+   * @return array
+   *   List of security advisories.
+   */
   protected function getFolderSecurityAdvisoriesByDate(string $folder, string $date) {
     $date = new \DateTime($date);
     $security_advisories = json_decode($this->runCommandWithKnownException(sprintf('composer audit --locked --working-dir=%s --format=json', $folder))->getOutput());

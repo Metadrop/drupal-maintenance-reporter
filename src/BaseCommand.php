@@ -14,11 +14,37 @@ use Symfony\Component\Console\Command\Command;
  */
 abstract class BaseCommand extends Command {
 
+  /**
+   * First commit obtained from the start date.
+   *
+   * @var string
+   */
   protected string $firstCommit;
+
+  /**
+   * First commit obtained from the end date.
+   *
+   * @var string
+   */
   protected string $lastCommit;
 
+  /**
+   * Cache of composer.lock files that have been read.
+   *
+   * Used to reduce disk usage.
+   *
+   * @var array
+   */
   protected array $composerLockDataCache = [];
 
+  /**
+   * Base path where volatile files are generated.
+   *
+   * It is needed a folder to place composer files so
+   * the audit can be performed.
+   *
+   * @var string
+   */
   protected string $dirBasePath;
 
   /**
@@ -29,6 +55,12 @@ abstract class BaseCommand extends Command {
     mkdir($this->getDirMainLocation());
   }
 
+  /**
+   * Get the path of the directory used to place composer files.
+   *
+   * @return string
+   *   Absolute path with the location.
+   */
   protected function getDirMainLocation() {
     return $this->dirBasePath;
   }
@@ -86,6 +118,18 @@ abstract class BaseCommand extends Command {
     return $process;
   }
 
+  /**
+   * Runs a command capturing its expected exception.
+   *
+   * Used to run commands like composer audit without having to
+   * add a try catch in the implementation.
+   *
+   * @param string $command
+   *   Full command.
+   *
+   * @return Process
+   *   Process result.
+   */
   protected function runCommandWithKnownException(string $command) {
     try {
       return $this->runCommand($command);
@@ -108,6 +152,17 @@ abstract class BaseCommand extends Command {
     file_put_contents($filepath, $first_commit_data);
   }
 
+  /**
+   * Get the first commit given a specfic date.
+   *
+   * @param string $date
+   *   Date.
+   * @param string $branch
+   *   Branch.
+   *
+   * @return string
+   *   Commit hash.
+   */
   protected function getFirstCommit(string $date, string $branch) {
     if (!isset($this->firstCommit)) {
       $this->firstCommit = trim($this->runCommand("git log origin/$branch --after=$date --pretty=format:'%h' | tail -n1")->getOutput());
@@ -115,6 +170,17 @@ abstract class BaseCommand extends Command {
     return $this->firstCommit;
   }
 
+  /**
+   * Get the last commit given a specfic date.
+   *
+   * @param string $date
+   *   Date.
+   * @param string $branch
+   *   Branch.
+   *
+   * @return string
+   *   Commit hash.
+   */
   protected function getLastCommit($date, $branch) {
     if (!isset($this->lastCommit)) {
       $this->lastCommit = trim($this->runCommand("git log origin/$branch --until=$date --pretty=format:'%h' | head -n1")->getOutput());
@@ -122,6 +188,15 @@ abstract class BaseCommand extends Command {
     return $this->lastCommit;
   }
 
+  /**
+   * Get the data of a composer lock file.
+   *
+   * @param string $folder
+   *   Folder.
+   *
+   * @return object
+   *   Json with the composer lock data.
+   */
   protected function getComposerLockData(string $folder) {
     if (!isset($this->composerLockDataCache[$folder])) {
       $this->composerLockDataCache[$folder] = json_decode(file_get_contents($folder . '/composer.lock'), TRUE);
@@ -129,6 +204,9 @@ abstract class BaseCommand extends Command {
     return $this->composerLockDataCache[$folder];
   }
 
+  /**
+   * Cleanup the directories.
+   */
   protected function cleanup() {
     $this->runCommand(sprintf('rm -r %s', $this->getDirMainLocation()));
   }
