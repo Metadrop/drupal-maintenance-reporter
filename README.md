@@ -13,6 +13,7 @@ These packages must be installed globally:
 
 - Git
 - Composer 2.4 or higher
+- [Composer lock diff](https://github.com/davidrjonas/composer-lock-diff)
 
 ## Usage
 
