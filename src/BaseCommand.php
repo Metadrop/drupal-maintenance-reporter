@@ -158,7 +158,7 @@ abstract class BaseCommand extends Command {
   protected function getBaseCommit(string $date, string $branch, string $format = '%h') {
     $first_commit = trim($this->runCommand("git log origin/$branch --after=$date --pretty=format:'%h' | tail -n1")->getOutput());
 
-    $base_commit = trim($this->runCommand("git show $first_commit~1 --pretty=format:'$format'")->getOutput());
+    $base_commit = trim($this->runCommand("git show $first_commit~1 -s --pretty=format:'$format'")->getOutput());
 
     if (empty($base_commit)) {
       throw new CommitsNotFoundException('There are no commits in the selected date!');
