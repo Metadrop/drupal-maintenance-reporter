@@ -51,8 +51,17 @@ class ComposerDiffPeriodCommand extends BaseCommand {
     $output->writeln("\n");
     $composer_lock_diff = json_decode($this->runCommand(sprintf('composer-lock-diff --from %s --to %s --json', $composer_lock_from_filepath, $composer_lock_to_filename))->getOutput(), true);
 
-    $this->printComposerChanges($composer_lock_diff['changes'], 'Production changes', $output);
-    $this->printComposerChanges($composer_lock_diff['changes-dev'], 'Development changes', $output);
+    if (!empty($composer_lock_diff['changes'])) {
+      $this->printComposerChanges($composer_lock_diff['changes'], 'Production changes', $output);
+    }
+
+    if (!empty($composer_lock_diff['changes-dev'])) {
+      $this->printComposerChanges($composer_lock_diff['changes-dev'], 'Development changes', $output);
+    }
+
+    if (empty($composer_lock_diff['changes']) && empty($composer_lock_diff['changes-dev'])) {
+      $output->writeln('No changes has been found in the selected period.');
+    }
 
     $this->cleanup();
 

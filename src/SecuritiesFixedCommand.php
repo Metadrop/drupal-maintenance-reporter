@@ -42,15 +42,31 @@ class SecuritiesFixedCommand extends BaseCommand {
     $this->saveComposerCommitStatus($this->getFirstCommit($from, $branch), $this->getComposerJsonFromLocation());
     $this->saveComposerCommitStatus($this->getLastCommit($to, $branch), $this->getComposerJsonToLocation());
 
-    $output->writeln("\n");
-    $fixed_advisories_table = $this->getComposerFixedSecurityAdvisories($to, $output);
-    $output->writeln('Fixed security advisories (Composer):');
-    $fixed_advisories_table->render();
+    $fixed_advisories = $this->getComposerFixedSecurityAdvisories($to, $output);
+    if (!empty($fixed_advisories)) {
+      $output->writeln("\n");
+      $fixed_advisories_table = new Table($output);
+      $fixed_advisories_table->setHeaders(['Package', 'CVE', 'Link']);
+      $fixed_advisories_table->setRows($fixed_advisories);
+      $output->writeln('Fixed security advisories (Composer):');
+      $fixed_advisories_table->render();
+    }
 
-    $output->writeln("\n");
-    $fixed_drupal_advisories_table = $this->getFixedDrupalSecurities($output);
-    $output->writeln('Fixed security advisories (Drupal):');
-    $fixed_drupal_advisories_table->render();
+    $fixed_drupal_securities = $this->getFixedDrupalSecurities($output);
+
+    if (!empty($fixed_drupal_securities)) {
+      $output->writeln("\n");
+      $fixed_drupal_advisories_table = new Table($output);
+      $fixed_drupal_advisories_table->setHeaders(['Package', 'From', 'To']);
+      $fixed_drupal_advisories_table->setRows($fixed_drupal_securities);
+
+      $output->writeln('Fixed security advisories (Drupal):');
+      $fixed_drupal_advisories_table->render();
+    }
+
+    if (empty($fixed_advisories) && empty($fixed_drupal_securities)) {
+      $output->writeln("\nThere aren't fixed security advisories at this period.");
+    }
 
     $this->cleanup();
     return 0;
@@ -71,14 +87,9 @@ class SecuritiesFixedCommand extends BaseCommand {
     $from_advisories = $this->getFolderSecurityAdvisoriesByDate($this->getComposerJsonFromLocation(), $to);
     $to_advisories = $this->getFolderSecurityAdvisoriesByDate($this->getComposerJsonToLocation(), $to);
 
-    $fixed_advisories = array_values(array_filter($from_advisories, function ($advisory_key) use($to_advisories) {
+    return array_values(array_filter($from_advisories, function ($advisory_key) use($to_advisories) {
       return !array_key_exists($advisory_key, $to_advisories);
     }, ARRAY_FILTER_USE_KEY));
-
-    $table = new Table($output);
-    $table->setHeaders(['Package', 'CVE', 'Link']);
-    $table->setRows($fixed_advisories);
-    return $table;
   }
 
   /**
@@ -92,8 +103,8 @@ class SecuritiesFixedCommand extends BaseCommand {
    * @param OutputInterface $output
    *   Output to create the table with results.
    *
-   * @return Table
-   *   Table ready to render the securities.
+   * @return array
+   *   List of securities.
    */
   protected function getFixedDrupalSecurities(OutputInterface $output) {
     $from_advisories = $this->getFolderDrupalAdvisories($this->getComposerJsonFromLocation());
@@ -104,7 +115,7 @@ class SecuritiesFixedCommand extends BaseCommand {
     }, ARRAY_FILTER_USE_KEY));
 
     $composer_lock_to_data = $this->getComposerLockData($this->getComposerJsonToLocation());
-    $fixed_securities = array_filter(array_map(function ($advisory) use ($composer_lock_to_data) {
+    return array_filter(array_map(function ($advisory) use ($composer_lock_to_data) {
       $data = [
         'name' => $advisory['name'],
         'from' => $advisory['version'],
@@ -118,12 +129,6 @@ class SecuritiesFixedCommand extends BaseCommand {
       }
       return $data;
     }, $fixed_securities));
-
-    $table = new Table($output);
-    $table->setHeaders(['Package', 'From', 'To']);
-    $table->setRows($fixed_securities);
-
-    return $table;
   }
 
   /**
