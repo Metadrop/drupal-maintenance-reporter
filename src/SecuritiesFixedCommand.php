@@ -2,6 +2,7 @@
 
 namespace DrupalMaintenanceReporter;
 
+use DrupalMaintenanceReporter\Exception\CommitsNotFoundException;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -19,7 +20,6 @@ class SecuritiesFixedCommand extends BaseCommand {
    * {@inheritdoc}
    */
   protected function initialize(InputInterface $input, OutputInterface $output) {
-    $this->showSummary($input, $output);
     $this->generateDirSkeleton();
   }
 
@@ -35,6 +35,13 @@ class SecuritiesFixedCommand extends BaseCommand {
    * {@inheritdoc}
    */
   public function execute(InputInterface $input, OutputInterface $output) : int {
+    try {
+      $this->showSummary($input, $output);
+    }
+    catch (CommitsNotFoundException $exception) {
+      return $exception->handle($output);
+    }
+
     $branch = $input->getArgument('branch');
     $from = $input->getOption('from');
     $to = $input->getOption('to');

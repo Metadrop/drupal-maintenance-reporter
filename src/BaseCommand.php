@@ -2,6 +2,7 @@
 
 namespace DrupalMaintenanceReporter;
 
+use DrupalMaintenanceReporter\Exception\CommitsNotFoundException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -155,7 +156,7 @@ abstract class BaseCommand extends Command {
     $first_commit = trim($this->runCommand("git log origin/$branch --after=$date --pretty=format:'$format' | tail -n1")->getOutput());
 
     if (empty($first_commit)) {
-      throw new \Exception('There are no commits in the selected date!');
+      throw new CommitsNotFoundException('There are no commits in the selected date!');
     }
 
     return $first_commit;
