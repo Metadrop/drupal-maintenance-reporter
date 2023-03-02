@@ -46,7 +46,7 @@ class SecuritiesFixedCommand extends BaseCommand {
     $from = $input->getOption('from');
     $to = $input->getOption('to');
 
-    $this->saveComposerCommitStatus($this->getFirstCommit($from, $branch), $this->getComposerJsonFromLocation());
+    $this->saveComposerCommitStatus($this->getBaseCommit($from, $branch), $this->getComposerJsonFromLocation());
     $this->saveComposerCommitStatus($this->getLastCommit($to, $branch), $this->getComposerJsonToLocation());
 
     $fixed_advisories = $this->getComposerFixedSecurityAdvisories($to, $output);

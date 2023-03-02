@@ -80,7 +80,7 @@ abstract class BaseCommand extends Command {
   }
 
   protected function showSummary(InputInterface $input, OutputInterface $output) {
-    $output->writeln(sprintf('Base reference commit: %s', $this->getFirstCommit($input->getOption('from'), $input->getArgument('branch'), '%h at %ci')));
+    $output->writeln(sprintf('Base reference commit: %s', $this->getBaseCommit($input->getOption('from'), $input->getArgument('branch'), '%h at %ci')));
     $output->writeln(sprintf('Latest reference commit: %s', $this->getLastCommit($input->getOption('to'), $input->getArgument('branch'), '%h at %ci')));
   }
 
@@ -140,7 +140,10 @@ abstract class BaseCommand extends Command {
   }
 
   /**
-   * Get the first commit given a specfic date.
+   * Get the base commit given a specfic date.
+   *
+   * The base commit is the commit previous
+   * to the date from the commits must be looked up.
    *
    * @param string $date
    *   Date.
@@ -152,14 +155,16 @@ abstract class BaseCommand extends Command {
    * @return string
    *   Commit hash.
    */
-  protected function getFirstCommit(string $date, string $branch, string $format = '%h') {
-    $first_commit = trim($this->runCommand("git log origin/$branch --after=$date --pretty=format:'$format' | tail -n1")->getOutput());
+  protected function getBaseCommit(string $date, string $branch, string $format = '%h') {
+    $first_commit = trim($this->runCommand("git log origin/$branch --after=$date --pretty=format:'%h' | tail -n1")->getOutput());
 
-    if (empty($first_commit)) {
+    $base_commit = trim($this->runCommand("git show $first_commit~1 --pretty=format:'$format'")->getOutput());
+
+    if (empty($base_commit)) {
       throw new CommitsNotFoundException('There are no commits in the selected date!');
     }
 
-    return $first_commit;
+    return $base_commit;
   }
 
   /**
@@ -176,7 +181,13 @@ abstract class BaseCommand extends Command {
    *   Commit hash.
    */
   protected function getLastCommit($date, $branch, string $format = '%h') {
-    return trim($this->runCommand("git log origin/$branch --until=$date --pretty=format:'$format' | head -n1")->getOutput());
+    $last_commit = trim($this->runCommand("git log origin/$branch --until=$date --pretty=format:'$format' | head -n1")->getOutput());
+
+    if (empty($last_commit)) {
+      throw new CommitsNotFoundException('There are no commits in the selected date!');
+    }
+
+    return $last_commit;
   }
 
   /**
