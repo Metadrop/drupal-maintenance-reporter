@@ -1,6 +1,6 @@
 <?php
 
-namespace DrupalMaintenanceReporting;
+namespace DrupalMaintenanceReporter;
 
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputInterface;
