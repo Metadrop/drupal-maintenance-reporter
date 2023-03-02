@@ -93,8 +93,8 @@ abstract class BaseCommand extends Command {
   }
 
   protected function showSummary(InputInterface $input, OutputInterface $output) {
-    $output->writeln(sprintf('Commit to start from: %s', $this->getFirstCommit($input->getOption('from'), $input->getArgument('branch'))));
-    $output->writeln(sprintf('Commit to start to: %s', $this->getLastCommit($input->getOption('to'), $input->getArgument('branch'))));
+    $output->writeln(sprintf('Base reference commit: %s', $this->getFirstCommit($input->getOption('from'), $input->getArgument('branch'), '%h at %ci')));
+    $output->writeln(sprintf('Latest reference commit: %s', $this->getLastCommit($input->getOption('to'), $input->getArgument('branch'), '%h at %ci')));
   }
 
   /**
@@ -159,15 +159,20 @@ abstract class BaseCommand extends Command {
    *   Date.
    * @param string $branch
    *   Branch.
+   * @param string $format
+   *   Format.
    *
    * @return string
    *   Commit hash.
    */
-  protected function getFirstCommit(string $date, string $branch) {
-    if (!isset($this->firstCommit)) {
-      $this->firstCommit = trim($this->runCommand("git log origin/$branch --after=$date --pretty=format:'%h' | tail -n1")->getOutput());
+  protected function getFirstCommit(string $date, string $branch, string $format = '%h') {
+    $first_commit = trim($this->runCommand("git log origin/$branch --after=$date --pretty=format:'$format' | tail -n1")->getOutput());
+
+    if (empty($first_commit)) {
+      throw new \Exception('There are no commits in the selected date!');
     }
-    return $this->firstCommit;
+
+    return $first_commit;
   }
 
   /**
@@ -177,15 +182,14 @@ abstract class BaseCommand extends Command {
    *   Date.
    * @param string $branch
    *   Branch.
+   * @param string $format
+   *   Format.
    *
    * @return string
    *   Commit hash.
    */
-  protected function getLastCommit($date, $branch) {
-    if (!isset($this->lastCommit)) {
-      $this->lastCommit = trim($this->runCommand("git log origin/$branch --until=$date --pretty=format:'%h' | head -n1")->getOutput());
-    }
-    return $this->lastCommit;
+  protected function getLastCommit($date, $branch, string $format = '%h') {
+    return trim($this->runCommand("git log origin/$branch --until=$date --pretty=format:'$format' | head -n1")->getOutput());
   }
 
   /**

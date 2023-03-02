@@ -39,12 +39,13 @@ class ComposerDiffPeriodCommand extends BaseCommand {
 
     $composer_lock_from_filepath = $this->dirBasePath . '/composer-lock-from.json';
 
-    $first_commit = $this->runCommand("git log origin/$branch --after=$from --pretty=format:'%h' | tail -n1")->getOutput();
+    $first_commit = $this->getFirstCommit($from, $branch);
+
     $this->saveFileAtCommit(trim($first_commit), 'composer.lock', $composer_lock_from_filepath);
 
     // @todo: place files into a specific temporary folder!
     $composer_lock_to_filename = $this->dirBasePath . '/composer-lock-to.json';
-    $last_commit = $this->runCommand("git log origin/$branch --until=$to --pretty=format:'%h' | head -n1")->getOutput();
+    $last_commit = $this->getLastCommit($to, $branch);
     $this->saveFileAtCommit(trim($last_commit), 'composer.lock', $composer_lock_to_filename);
 
     $output->writeln("\n");
