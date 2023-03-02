@@ -15,20 +15,6 @@ use Symfony\Component\Console\Command\Command;
 abstract class BaseCommand extends Command {
 
   /**
-   * First commit obtained from the start date.
-   *
-   * @var string
-   */
-  protected string $firstCommit;
-
-  /**
-   * First commit obtained from the end date.
-   *
-   * @var string
-   */
-  protected string $lastCommit;
-
-  /**
    * Cache of composer.lock files that have been read.
    *
    * Used to reduce disk usage.
