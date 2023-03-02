@@ -50,6 +50,7 @@ class SecuritiesFixedCommand extends BaseCommand {
     $this->saveComposerCommitStatus($this->getLastCommit($to, $branch), $this->getComposerJsonToLocation());
 
     $fixed_advisories = $this->getComposerFixedSecurityAdvisories($to, $output);
+
     if (!empty($fixed_advisories)) {
       $output->writeln("\n");
       $fixed_advisories_table = new Table($output);
@@ -84,13 +85,11 @@ class SecuritiesFixedCommand extends BaseCommand {
    *
    * @param string $to
    *   Date limit to check fixed securities. If there is a security reported later, if won't be checked.
-   * @param OutputInterface $output
-   *   Used to build the table with fixed advisories.
    *
    * @return array
    *   List of fixed security advisories.
    */
-  protected function getComposerFixedSecurityAdvisories(string $to, OutputInterface $output) {
+  protected function getComposerFixedSecurityAdvisories(string $to) {
     $from_advisories = $this->getFolderSecurityAdvisoriesByDate($this->getComposerJsonFromLocation(), $to);
     $to_advisories = $this->getFolderSecurityAdvisoriesByDate($this->getComposerJsonToLocation(), $to);
 
@@ -107,13 +106,10 @@ class SecuritiesFixedCommand extends BaseCommand {
    *   2. Detect the drupal securities from the end date.
    *   3. From the first list, get the securities that are not present in the second list, that means they are fixed.
    *
-   * @param OutputInterface $output
-   *   Output to create the table with results.
-   *
    * @return array
    *   List of securities.
    */
-  protected function getFixedDrupalSecurities(OutputInterface $output) {
+  protected function getFixedDrupalSecurities() {
     $from_advisories = $this->getFolderDrupalAdvisories($this->getComposerJsonFromLocation());
     $to_advisories = $this->getFolderDrupalAdvisories($this->getComposerJsonToLocation());
 
@@ -256,8 +252,9 @@ class SecuritiesFixedCommand extends BaseCommand {
       $security_advisories_list_by_package = $security_advisories['advisories'];
       $security_advisories_list = call_user_func_array('array_merge', array_values($security_advisories_list_by_package));
       $security_advisories_list = array_filter($security_advisories_list, function ($advisory) use ($date) {
-        if (isset($advisory->reportedAt->date)) {
-          $advisory_datetime = new \DateTime($advisory->reportedAt->date);
+        $reported_at = $advisory['reportedAt'] ?? $advisory['reportedAt']['date'] ?? '';
+        if ($reported_at) {
+          $advisory_datetime = new \DateTime($reported_at);
           return $advisory_datetime->getTimestamp() < $date->getTimestamp();
         }
 
@@ -270,10 +267,10 @@ class SecuritiesFixedCommand extends BaseCommand {
 
     $security_advisories_list_formatted = [];
     foreach ($security_advisories_list as $advisory) {
-      $security_advisories_list_formatted[sprintf('%s-%s', $advisory->packageName, $advisory->cve)] = [
-        $advisory->packageName,
-        $advisory->title,
-        $advisory->link,
+      $security_advisories_list_formatted[sprintf('%s-%s', $advisory['packageName'], $advisory['cve'])] = [
+        $advisory['packageName'],
+        $advisory['title'],
+        $advisory['link'],
       ];
     }
     return $security_advisories_list_formatted;
