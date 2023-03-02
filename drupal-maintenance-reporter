@@ -19,9 +19,9 @@ if (file_exists($autoloadFile = __DIR__ . '/vendor/autoload.php')
 }
 
 use Symfony\Component\Console\Application;
-use DrupalMaintenanceReporting\ComposerDiffPeriodCommand;
-use DrupalMaintenanceReporting\SecuritiesFixedCommand;
-use DrupalMaintenanceReporting\DrupalMaintenanceReporter;
+use DrupalMaintenanceReporter\ComposerDiffPeriodCommand;
+use DrupalMaintenanceReporter\SecuritiesFixedCommand;
+use DrupalMaintenanceReporter\DrupalMaintenanceReporter;
 
 
 $app = new Application();
