@@ -87,8 +87,8 @@ class SecuritiesFixedCommand extends BaseCommand {
    * @param OutputInterface $output
    *   Used to build the table with fixed advisories.
    *
-   * @return Table
-   *   Output table prepared to render.
+   * @return array
+   *   List of fixed security advisories.
    */
   protected function getComposerFixedSecurityAdvisories(string $to, OutputInterface $output) {
     $from_advisories = $this->getFolderSecurityAdvisoriesByDate($this->getComposerJsonFromLocation(), $to);
@@ -225,6 +225,14 @@ class SecuritiesFixedCommand extends BaseCommand {
     return $this->dirBasePath . '/to';
   }
 
+  /**
+   * Save the status of composer in a specific commit and folder.
+   *
+   * @param string $commit_id
+   *   Commit hash.
+   * @param string $folder
+   *   Folder.
+   */
   protected function saveComposerCommitStatus(string $commit_id, string $folder) {
     $this->saveFileAtCommit($commit_id, 'composer.lock', $folder . '/composer.lock');
     $this->saveFileAtCommit($commit_id, 'composer.json', $folder . '/composer.json');
