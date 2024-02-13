@@ -253,7 +253,7 @@ class SecuritiesFixedCommand extends BaseCommand {
       $security_advisories_list = call_user_func_array('array_merge', array_values($security_advisories_list_by_package));
       $security_advisories_list = array_filter($security_advisories_list, function ($advisory) use ($date) {
         $reported_at = $advisory['reportedAt']['date'] ?? $advisory['reportedAt'] ?? '';
-        if ($reported_at) {
+        if (!empty($reported_at)) {
           $advisory_datetime = new \DateTime($reported_at);
           return $advisory_datetime->getTimestamp() < $date->getTimestamp();
         }
