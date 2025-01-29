@@ -51,28 +51,29 @@ class SecuritiesFixedCommand extends BaseCommand {
 
     $fixed_advisories = $this->getComposerFixedSecurityAdvisories($to, $output);
 
+    $output->writeln("\n");
+    $output->writeln('Fixed security advisories (Composer):');
     if (!empty($fixed_advisories)) {
-      $output->writeln("\n");
       $fixed_advisories_table = new Table($output);
       $fixed_advisories_table->setHeaders(['Package', 'CVE', 'Link']);
       $fixed_advisories_table->setRows($fixed_advisories);
-      $output->writeln('Fixed security advisories (Composer):');
       $fixed_advisories_table->render();
+    }
+    else {
+      $output->writeln("\nThere aren't fixed security advisories at this period.");
     }
 
     $fixed_drupal_securities = $this->getFixedDrupalSecurities($output);
 
+    $output->writeln("\n");
+    $output->writeln('Fixed security advisories (Drupal):');
     if (!empty($fixed_drupal_securities)) {
-      $output->writeln("\n");
       $fixed_drupal_advisories_table = new Table($output);
       $fixed_drupal_advisories_table->setHeaders(['Package', 'From', 'To']);
       $fixed_drupal_advisories_table->setRows($fixed_drupal_securities);
-
-      $output->writeln('Fixed security advisories (Drupal):');
       $fixed_drupal_advisories_table->render();
     }
-
-    if (empty($fixed_advisories) && empty($fixed_drupal_securities)) {
+    else {
       $output->writeln("\nThere aren't fixed security advisories at this period.");
     }
 
