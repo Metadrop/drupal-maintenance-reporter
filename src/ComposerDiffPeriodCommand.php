@@ -58,15 +58,19 @@ class ComposerDiffPeriodCommand extends BaseCommand {
     $output->writeln("\n");
     $composer_lock_diff = json_decode($this->runCommand(sprintf('composer-lock-diff --from %s --to %s --json', $composer_lock_from_filepath, $composer_lock_to_filename))->getOutput(), true);
 
+    $output->writeln("Production changes:\n");
     if (!empty($composer_lock_diff['changes'])) {
-      $this->printComposerChanges($composer_lock_diff['changes'], 'Production changes', $output);
+      $this->printComposerChanges($composer_lock_diff['changes'], $output);
+    }
+    else {
+      $output->writeln('No changes has been found in the selected period.');
     }
 
+    $output->writeln("Development changes:\n");
     if (!empty($composer_lock_diff['changes-dev'])) {
-      $this->printComposerChanges($composer_lock_diff['changes-dev'], 'Development changes', $output);
+      $this->printComposerChanges($composer_lock_diff['changes-dev'], $output);
     }
-
-    if (empty($composer_lock_diff['changes']) && empty($composer_lock_diff['changes-dev'])) {
+    else {
       $output->writeln('No changes has been found in the selected period.');
     }
 
@@ -85,8 +89,7 @@ class ComposerDiffPeriodCommand extends BaseCommand {
    * @param OutputInterface $output
    *   Output to print the changes.
    */
-  protected function printComposerChanges(array $changes, string $label, OutputInterface $output) {
-    $output->writeln("$label:\n");
+  protected function printComposerChanges(array $changes, OutputInterface $output) {
     $production_changes_table = new Table($output);
     $production_changes_table->setHeaders(['Package', 'From', 'To']);
 
